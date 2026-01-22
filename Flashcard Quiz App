@@ -1,0 +1,183 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const FlashcardApp());
+}
+
+class FlashcardApp extends StatelessWidget {
+  const FlashcardApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Flashcard Quiz App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const FlashcardHome(),
+    );
+  }
+}
+
+class Flashcard {
+  String question;
+  String answer;
+
+  Flashcard(this.question, this.answer);
+}
+
+class FlashcardHome extends StatefulWidget {
+  const FlashcardHome({super.key});
+
+  @override
+  State<FlashcardHome> createState() => _FlashcardHomeState();
+}
+
+class _FlashcardHomeState extends State<FlashcardHome> {
+  List<Flashcard> cards = [
+    Flashcard("What is Flutter?", "Flutter is a UI toolkit by Google"),
+    Flashcard("What language does Flutter use?", "Dart"),
+  ];
+
+  int index = 0;
+  bool showAnswer = false;
+
+  final questionController = TextEditingController();
+  final answerController = TextEditingController();
+
+  void nextCard() {
+    setState(() {
+      if (index < cards.length - 1) {
+        index++;
+        showAnswer = false;
+      }
+    });
+  }
+
+  void previousCard() {
+    setState(() {
+      if (index > 0) {
+        index--;
+        showAnswer = false;
+      }
+    });
+  }
+
+  void addCard() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Add Flashcard"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: questionController, decoration: const InputDecoration(labelText: "Question")),
+            TextField(controller: answerController, decoration: const InputDecoration(labelText: "Answer")),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                cards.add(Flashcard(questionController.text, answerController.text));
+                questionController.clear();
+                answerController.clear();
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void editCard() {
+    questionController.text = cards[index].question;
+    answerController.text = cards[index].answer;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Flashcard"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: questionController),
+            TextField(controller: answerController),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                cards[index].question = questionController.text;
+                cards[index].answer = answerController.text;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void deleteCard() {
+    setState(() {
+      cards.removeAt(index);
+      if (index > 0) index--;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Flashcard Quiz App")),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  showAnswer ? cards[index].answer : cards[index].question,
+                  style: const TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  showAnswer = !showAnswer;
+                });
+              },
+              child: Text(showAnswer ? "Show Question" : "Show Answer"),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(onPressed: previousCard, child: const Text("Previous")),
+                ElevatedButton(onPressed: nextCard, child: const Text("Next")),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(onPressed: addCard, child: const Text("Add")),
+                ElevatedButton(onPressed: editCard, child: const Text("Edit")),
+                ElevatedButton(onPressed: deleteCard, child: const Text("Delete")),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
